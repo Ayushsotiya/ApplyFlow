@@ -4,7 +4,7 @@ const {
     Signup,
     Login,
     sendotp
-} = require("../controllers/authController");
+} = require("../controllers/auth");
 
 const router = express.Router();
 

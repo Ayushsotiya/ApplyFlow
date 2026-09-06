@@ -1,0 +1,26 @@
+{
+  "name": "applyflow",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "client": "cd client && npm run dev",
+    "server": "cd server && npm run dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ayushsotiya/ApplyFlow.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Ayushsotiya/ApplyFlow/issues"
+  },
+  "homepage": "https://github.com/Ayushsotiya/ApplyFlow#readme",
+  "dependencies": {
+    "concurrently": "^10.0.5"
+  }
+}

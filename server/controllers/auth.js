@@ -2,7 +2,8 @@
 const bcrypt = require("bcryptjs");
 const pool = require("../config/db");
 const jwt = require("jsonwebtoken");
-
+const otpGenerator = require('otp-generator');
+const mailSender = require('../utils/mailSender');
 exports.Signup = async (req, res) => {
     try {
         const { name, email, password, otp } = req.body;
@@ -141,13 +142,14 @@ exports.Login = async (req, res) => {
 
 exports.sendotp = async (req, res) => {
     try {
+        // Fetch email from request body
         const { email } = req.body;
 
         // Check email
         if (!email) {
             return res.status(400).json({
                 success: false,
-                message: "Email is required"
+                message: "Email is required",
             });
         }
 
@@ -157,37 +159,66 @@ exports.sendotp = async (req, res) => {
             [email]
         );
 
+        // If user already exists
         if (checkUserPresent.rows.length > 0) {
             return res.status(401).json({
                 success: false,
-                message: "User is already registered"
+                message: "User is Already Registered",
             });
         }
 
         // Generate 6-digit OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        var otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false,
+        });
 
         console.log("OTP Generated:", otp);
 
+        // Check if this OTP already exists
+        let checkOtp = await pool.query(
+            "SELECT id FROM otp WHERE otp = $1",
+            [otp]
+        );
+
+        // Generate another OTP if duplicate
+        while (checkOtp.rows.length > 0) {
+            otp = otpGenerator.generate(6, {
+                upperCaseAlpahbets: false,
+                lowerCaseAlphabets: false,
+                specialChars: false,
+            });
+
+            checkOtp = await pool.query(
+                "SELECT id FROM otp WHERE otp = $1",
+                [otp]
+            );
+        }
+        mailSender(email, "Verification code from ApplyFlow", `<h1>Your OTP is :</h1><p>${otp}</p>`, "ad");
         // Save OTP in database
-        await pool.query(
+        const otpResult = await pool.query(
             `INSERT INTO otp (email, otp)
-             VALUES ($1, $2)`,
+             VALUES ($1, $2)
+             RETURNING *`,
             [email, otp]
         );
 
+        console.log("OTP Body:", otpResult.rows[0]);
+
+        // Return response
         return res.status(200).json({
             success: true,
-            message: "OTP sent successfully"
+            message: "OTP Sent Successfully",
+            otp,
         });
 
     } catch (error) {
-        console.error(error);
+        console.error(error.message);
 
         return res.status(500).json({
             success: false,
-            message: "Failed to send OTP"
+            message: error.message,
         });
     }
 };
-
