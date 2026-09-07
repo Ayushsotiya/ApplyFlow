@@ -1,94 +1,240 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSelector, useDispatch } from "react-redux";
-import { logout } from "@/redux/authSlice";
-import Logo from "@/components/Logo";
-import Button from "@/components/Button";
-import DashboardPreview from "@/components/DashboardPreview";
-import { LogOut, User } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
+import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import StatsCard from "@/components/dashboard/StatsCard";
+import HiringPipeline from "@/components/dashboard/HiringPipeline";
+import RecentApplications from "@/components/dashboard/RecentApplications";
+import UpcomingInterviews from "@/components/dashboard/UpcomingInterviews";
+import QuickActions from "@/components/dashboard/QuickActions";
+import AddApplicationModal from "@/components/dashboard/AddApplicationModal";
+import SpotlightSearchModal from "@/components/dashboard/SpotlightSearchModal";
+import { initialDashboardData } from "@/data/dashboardData";
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const dispatch = useDispatch();
-  const { user, token } = useSelector((state) => state.auth);
+  // Main Data States
+  const [stats, setStats] = useState(initialDashboardData.stats);
+  const [pipelineStages, setPipelineStages] = useState(initialDashboardData.pipelineStages);
+  const [applications, setApplications] = useState(initialDashboardData.recentApplications);
+  const [upcomingInterviews] = useState(initialDashboardData.upcomingInterviews);
+  const [collections] = useState(initialDashboardData.collections);
 
+  // UI Interactive States
+  const [activeNav, setActiveNav] = useState("all");
+  const [activeCollection, setActiveCollection] = useState(null);
+  const [activeFilter, setActiveFilter] = useState("All"); // All | Active | Archived
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Global ⌘K / Ctrl+K keyboard shortcut
   useEffect(() => {
-    // If not authenticated, redirect to login
-    const localToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (!token && !localToken) {
-      router.push("/login");
+    function handleKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsSearchModalOpen((prev) => !prev);
+      }
     }
-  }, [token, router]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    router.push("/login");
+  // Filter applications dynamically based on active filter tabs & sidebar selection
+  const filteredApplications = useMemo(() => {
+    return applications.filter((app) => {
+      // 1. Sidebar Nav Filter
+      if (activeNav === "interviews" && app.status !== "Interview") {
+        return false;
+      }
+      if (activeNav === "offers" && app.status !== "Offer") {
+        return false;
+      }
+
+      // 2. Header Segmented Filter (All, Active, Archived)
+      if (activeFilter === "Active") {
+        return app.category === "active" && app.status !== "Rejected" && app.status !== "Withdrawn";
+      }
+      if (activeFilter === "Archived") {
+        return app.category === "archived" || app.status === "Rejected" || app.status === "Withdrawn";
+      }
+
+      return true;
+    });
+  }, [applications, activeNav, activeFilter]);
+
+  // Handle adding a new application from modal
+  const handleAddApplication = (newApp) => {
+    setApplications((prev) => [newApp, ...prev]);
+
+    // Update total count stat
+    setStats((prevStats) =>
+      prevStats.map((st) => {
+        if (st.id === "total") {
+          const currentVal = parseInt(st.value, 10) || 0;
+          return {
+            ...st,
+            value: (currentVal + 1).toString(),
+            subtext: "+5 this week",
+          };
+        }
+        if (st.id === "interviews" && newApp.status === "Interview") {
+          const currentVal = parseInt(st.value, 10) || 0;
+          return {
+            ...st,
+            value: (currentVal + 1).toString(),
+          };
+        }
+        if (st.id === "offers" && newApp.status === "Offer") {
+          const currentVal = parseInt(st.value, 10) || 0;
+          return {
+            ...st,
+            value: (currentVal + 1).toString(),
+          };
+        }
+        return st;
+      })
+    );
+
+    // Update pipeline stage counts
+    setPipelineStages((prevStages) =>
+      prevStages.map((stage) => {
+        if (stage.id.toLowerCase() === newApp.status.toLowerCase()) {
+          return { ...stage, count: stage.count + 1 };
+        }
+        return stage;
+      })
+    );
   };
 
+  // Handle status changes directly from 3-dot menu
+  const handleStatusChange = (appId, newStatus) => {
+    setApplications((prev) =>
+      prev.map((app) => {
+        if (app.id === appId) {
+          return {
+            ...app,
+            status: newStatus,
+            category: newStatus === "Rejected" || newStatus === "Withdrawn" ? "archived" : "active",
+            updatedAt: "Just now",
+          };
+        }
+        return app;
+      })
+    );
+  };
+
+  // Handle deleting an application
+  const handleDeleteApplication = (appId) => {
+    setApplications((prev) => prev.filter((app) => app.id !== appId));
+  };
+
+  // Count calculations for sidebar
+  const totalAppsCount = 28 + (applications.length - 4);
+  const interviewsCount = 5 + applications.filter((a) => a.status === "Interview" && !["app-1", "app-2"].includes(a.id)).length;
+  const offersCount = 2 + applications.filter((a) => a.status === "Offer").length;
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFA] text-[#1D1D1F]">
-      {/* Top Navigation */}
-      <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-black/[0.06] px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Logo size="md" />
-        </div>
+    <div className="min-h-screen bg-[#FBFBFD] text-[#1D1D1F] flex flex-col antialiased selection:bg-[#0071E3]/20">
+      {/* Top Desktop Bar (macOS Window Title Bar) */}
+      <DashboardTopBar
+        onOpenSearch={() => setIsSearchModalOpen(true)}
+        onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+        mobileSidebarOpen={mobileSidebarOpen}
+      />
 
-        <div className="flex items-center gap-4">
-          {user && (
-            <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-[#F5F5F7] border border-black/[0.05]">
-              {user.profile_image ? (
-                <img
-                  src={user.profile_image}
-                  alt={user.name || "User"}
-                  className="w-6 h-6 rounded-full"
+      {/* Application Body: Sidebar + Main Content Area */}
+      <div className="flex-1 flex w-full relative">
+        {/* Left macOS Sidebar */}
+        <DashboardSidebar
+          activeNav={activeNav}
+          onSelectNav={(navId) => {
+            setActiveNav(navId);
+            setActiveCollection(null);
+          }}
+          applicationsCount={totalAppsCount}
+          interviewsCount={interviewsCount}
+          offersCount={offersCount}
+          collections={collections}
+          activeCollection={activeCollection}
+          onSelectCollection={(colId) => {
+            setActiveCollection(colId);
+            setActiveNav(null);
+          }}
+          mobileOpen={mobileSidebarOpen}
+          onCloseMobile={() => setMobileSidebarOpen(false)}
+        />
+
+        {/* Main Dashboard Canvas */}
+        <main className="flex-1 min-w-0 bg-[#FBFBFD] p-5 sm:p-7 lg:p-9 overflow-x-hidden">
+          <div className="max-w-6xl mx-auto space-y-6">
+            {/* Dashboard Header */}
+            <DashboardHeader
+              activeFilter={activeFilter}
+              onFilterChange={setActiveFilter}
+              onOpenAddModal={() => setIsAddModalOpen(true)}
+              lastUpdated="12 minutes ago"
+            />
+
+            {/* Statistics: 4 compact cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {stats.map((stat) => (
+                <StatsCard
+                  key={stat.id}
+                  label={stat.label}
+                  value={stat.value}
+                  subtext={stat.subtext}
+                  icon={stat.icon}
+                  highlight={stat.highlight}
                 />
-              ) : (
-                <div className="w-6 h-6 rounded-full bg-[#0071E3] text-white flex items-center justify-center text-xs font-semibold">
-                  {user.name ? user.name.charAt(0).toUpperCase() : <User className="w-3.5 h-3.5" />}
-                </div>
-              )}
-              <span className="text-xs font-medium text-[#1D1D1F]">
-                {user.name || user.email}
-              </span>
+              ))}
             </div>
-          )}
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            icon={LogOut}
-            className="text-xs"
-          >
-            Sign out
-          </Button>
-        </div>
-      </header>
+            {/* Hiring Pipeline Stage Progress */}
+            <HiringPipeline
+              stages={pipelineStages}
+              totalTracks={totalAppsCount}
+            />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1D1D1F]">
-              Welcome back{user?.name ? `, ${user.name}` : ""}
-            </h1>
-            <p className="text-sm text-[#86868B] mt-1">
-              Here is what's happening with your job applications today.
-            </p>
+            {/* Main Content: Two Columns */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left Column: Recent Opportunities (wider, 8 cols on lg) */}
+              <div className="lg:col-span-8">
+                <RecentApplications
+                  applications={filteredApplications}
+                  totalCount={totalAppsCount}
+                  onStatusChange={handleStatusChange}
+                  onDelete={handleDeleteApplication}
+                />
+              </div>
+
+              {/* Right Column: Upcoming Interviews & Quick Actions (4 cols on lg) */}
+              <div className="lg:col-span-4 space-y-5">
+                <UpcomingInterviews interviews={upcomingInterviews} />
+                <QuickActions onOpenAddModal={() => setIsAddModalOpen(true)} />
+              </div>
+            </div>
           </div>
-        </div>
+        </main>
+      </div>
 
-        {/* Render Dashboard Workspace */}
-        <DashboardPreview />
-      </main>
+      {/* Add Application macOS Sheet Modal */}
+      <AddApplicationModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAddApplication={handleAddApplication}
+      />
 
-      {/* Footer */}
-      <footer className="py-6 border-t border-black/[0.05] text-center text-xs text-[#86868B]">
-        ApplyFlow • Modern Career Application Management
-      </footer>
+      {/* Spotlight Search Modal (⌘K) */}
+      <SpotlightSearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        applications={applications}
+        onSelectApplication={(app) => {
+          // If clicked in search, highlight or filter
+        }}
+      />
     </div>
   );
 }

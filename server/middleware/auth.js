@@ -6,10 +6,10 @@ require('dotenv').config();
 exports.auth = async (req, res, next) => {
     try {
         //extract token
-        const token = req.cookies.token || req.body.token || req.header('Authorization').replace('Bearer ','');
+        const token = req.cookies?.token || req.body?.token || req.header('Authorization')?.replace('Bearer ', '');
 
         //if token is missing
-        if(!token) {
+        if (!token) {
             return res.status(401).json({
                 success: false,
                 message: 'Token Is Missing'
@@ -22,12 +22,12 @@ exports.auth = async (req, res, next) => {
             console.log(decode);
             req.user = decode;
 
-        } catch(error) {
+        } catch (error) {
             //verirfication - issue
             return res.status(401).json({
                 success: false,
                 message: 'Token Is Invalid',
-            });   
+            });
         }
         next();
 
