@@ -70,7 +70,14 @@ exports.getCollections = async (req, res) => {
 exports.getCollectionById = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { id } = req.params;
+        const { id } = req.body;
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Collection ID is required",
+            });
+        }
 
         const result = await pool.query(
             `SELECT
@@ -141,8 +148,14 @@ exports.getCollectionById = async (req, res) => {
 exports.updateCollection = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { id } = req.params;
-        const { name } = req.body;
+        const { id, name } = req.body;
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Collection ID is required",
+            });
+        }
 
         if (!name) {
             return res.status(400).json({
@@ -188,7 +201,14 @@ exports.updateCollection = async (req, res) => {
 exports.deleteCollection = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { id } = req.params;
+        const { id } = req.body;
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Collection ID is required",
+            });
+        }
 
         const result = await pool.query(
             `DELETE FROM collections
@@ -225,7 +245,14 @@ exports.deleteCollection = async (req, res) => {
 exports.addJobToCollection = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { id, jobId } = req.params;
+        const { id, jobId } = req.body;
+
+        if (!id || !jobId) {
+            return res.status(400).json({
+                success: false,
+                message: "Collection ID and Job ID are required",
+            });
+        }
 
         // Check collection belongs to user
         const collection = await pool.query(
@@ -287,7 +314,14 @@ exports.addJobToCollection = async (req, res) => {
 exports.removeJobFromCollection = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { id, jobId } = req.params;
+        const { id, jobId } = req.body;
+
+        if (!id || !jobId) {
+            return res.status(400).json({
+                success: false,
+                message: "Collection ID and Job ID are required",
+            });
+        }
 
         // Check collection
         const collection = await pool.query(

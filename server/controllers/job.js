@@ -108,7 +108,14 @@ exports.getJobs = async (req, res) => {
 exports.getJobById = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { id } = req.params;
+        const { id } = req.body;
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Job ID is required"
+            });
+        }
 
         const result = await pool.query(
             `SELECT *
@@ -144,9 +151,9 @@ exports.getJobById = async (req, res) => {
 exports.updateJob = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { id } = req.params;
 
         const {
+            id,
             company_name,
             job_title,
             description,
@@ -158,6 +165,13 @@ exports.updateJob = async (req, res) => {
             note,
             applied_date
         } = req.body;
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Job ID is required"
+            });
+        }
 
         const result = await pool.query(
             `UPDATE jobs
@@ -219,7 +233,14 @@ exports.updateJob = async (req, res) => {
 exports.deleteJob = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { id } = req.params;
+        const { id } = req.body;
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Job ID is required"
+            });
+        }
 
         const result = await pool.query(
             `DELETE FROM jobs
