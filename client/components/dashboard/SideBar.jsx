@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 
@@ -26,12 +26,12 @@ import {
 } from "lucide-react";
 
 export default function DashboardSidebar({
-  activeNav = "Recent",
-  activeCollection = null,
+
   mobileOpen = false,
   onCloseMobile,
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useDispatch();
 
   const { user, token } = useSelector((state) => state.auth);
@@ -125,6 +125,12 @@ export default function DashboardSidebar({
     .join("")
     .substring(0, 2)
     .toUpperCase();
+
+  const activeNav = pathname === "/dashboard" ? "Recent" : pathname === "/dashboard/all-applications" ? "all" : pathname === "/dashboard/interviews" ?
+    "interviews"
+    : pathname === "/dashboard/offers"
+      ? "offers"
+      : null;
 
 
   const navItems = [
@@ -467,8 +473,7 @@ export default function DashboardSidebar({
               {!collectionsLoading &&
                 allCollections.map((collection) => {
                   const isSelected =
-                    activeCollection ===
-                    collection.id;
+                    pathname === `/dashboard/${collection.name}`;
 
                   return (
                     <button
