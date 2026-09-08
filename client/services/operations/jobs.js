@@ -10,6 +10,7 @@ const {
     UPDATE_JOB_API,
     DELETE_JOB_API,
     GET_DASHBOARD_API,
+    UPDATE_JOB_STATUS_API
 } = jobEndpoints;
 
 
@@ -29,7 +30,8 @@ export function createJob(token, jobData) {
 
             toast.success("Job added successfully!");
             // Refresh all jobs list
-            dispatch(fetchJobs(token));
+            await dispatch(fetchJobs(token));
+            await fetchDashboard(token);
             return response.data.job;
 
         } catch (error) {
@@ -92,25 +94,49 @@ export function fetchJobById(token, id) {
     };
 }
 
-
-// UPDATE JOB
-export function updateJob(token, jobData) {
-    // jobData must include { id, ...fields }
+export function updateStatus(token, id, status) {
     return async (dispatch) => {
         dispatch(setLoading(true));
-        const toastId = toast.loading("Updating job...");
         try {
-            const response = await apiConnector("POST", UPDATE_JOB_API, jobData, {
+            const response = await apiConnector("POST", UPDATE_JOB_STATUS_API, { id, status }, {
                 Authorization: `Bearer ${token}`,
             });
+            console.log(response);
+            if (!response.data.success) {
+                throw new Error(response.data.message);
+            }
+            await dispatch(fetchJobs(token));
+            await dispatch(fetchDashboard(token));
+            toast.success("Job status updated successfully!");
+            return response.data.job;
+        } catch (err) {
+            console.error(err);
+            toast.error(err?.response?.data?.message || "Failed to update job status");
+        } finally {
+            dispatch(setLoading(false));
+        }
+    }
+}
+// UPDATE JOB
+export function updateJob(token, jobData) {
 
+    return async (dispatch) => {
+        dispatch(setLoading(true));
+
+        const toastId = toast.loading("Updating job...");
+        try {
+            console.log('started2');
+            const response = await apiConnector("POST", UPDATE_JOB_API, { ...jobData }, {
+                Authorization: `Bearer ${token}`,
+            });
+            console.log(response);
             if (!response.data.success) {
                 throw new Error(response.data.message);
             }
 
             toast.success("Job updated successfully!");
             // Refresh all jobs list
-            dispatch(fetchJobs(token));
+            await dispatch(fetchJobs(token));
             return response.data.job;
 
         } catch (error) {
@@ -140,7 +166,7 @@ export function deleteJob(token, id) {
 
             toast.success("Job deleted successfully!");
             // Refresh all jobs list
-            dispatch(fetchJobs(token));
+            await dispatch(fetchJobs(token));
 
         } catch (error) {
             console.error(error);

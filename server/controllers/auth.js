@@ -111,7 +111,7 @@ exports.Login = async (req, res) => {
             },
             process.env.JWT_SECRET,
             {
-                expiresIn: "2h"
+                expiresIn: "7d"
             }
         );
 
@@ -174,7 +174,6 @@ exports.sendotp = async (req, res) => {
             specialChars: false,
         });
 
-        console.log("OTP Generated:", otp);
 
         // Check if this OTP already exists
         let checkOtp = await pool.query(
@@ -204,7 +203,6 @@ exports.sendotp = async (req, res) => {
             [email, otp]
         );
 
-        console.log("OTP Body:", otpResult.rows[0]);
 
         // Return response
         return res.status(200).json({

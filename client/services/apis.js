@@ -10,7 +10,8 @@ export const jobEndpoints = {
   CREATE_JOB_API: `${BASE_URL}/jobs/create`,
   GET_JOBS_API: `${BASE_URL}/jobs/get`,
   GET_JOB_BY_ID_API: `${BASE_URL}/jobs/get-by-id`,    // POST: { id }
-  UPDATE_JOB_API: `${BASE_URL}/jobs/update`,            // POST: { id, ...fields }
+  UPDATE_JOB_API: `${BASE_URL}/jobs/update`,
+  UPDATE_JOB_STATUS_API: `${BASE_URL}/jobs/update-status`,          // POST: { id, ...fields }
   DELETE_JOB_API: `${BASE_URL}/jobs/delete`,            // POST: { id }
   GET_DASHBOARD_API: `${BASE_URL}/jobs/dashboard`,
 };

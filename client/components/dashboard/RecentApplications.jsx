@@ -3,13 +3,27 @@
 import Link from "next/link";
 import ApplicationRow from "./ApplicationRow";
 import { ArrowRight, Inbox } from "lucide-react";
+import { fetchJobs } from '@/services/operations/jobs';
+import { useEffect } from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { updateStatus, deleteJob } from '@/services/operations/jobs';
+export default function RecentApplications() {
+  const dispatch = useDispatch();
+  const { token } = useSelector((state) => state.auth);
+  const { allJobs } = useSelector((state) => state.jobs);
 
-export default function RecentApplications({
-  applications = [],
-  totalCount = 28,
-  onStatusChange,
-  onDelete,
-}) {
+  const onDelete = async (id) => {
+    await dispatch(deleteJob(token, id));
+  }
+
+  const onStatusChange = async (id, newStatus) => {
+    await dispatch(updateStatus(token, id, newStatus));
+  }
+
+  useEffect(() => {
+    dispatch(fetchJobs(token));
+  }, []);
+
   return (
     <div className="space-y-3">
       {/* Header */}
@@ -24,14 +38,9 @@ export default function RecentApplications({
 
       {/* Applications List */}
       <div className="space-y-2">
-        {applications.length > 0 ? (
-          applications.map((app) => (
-            <ApplicationRow
-              key={app.id}
-              app={app}
-              onStatusChange={onStatusChange}
-              onDelete={onDelete}
-            />
+        {allJobs.length > 0 ? (
+          allJobs.map((app) => (
+            <ApplicationRow key={app.id} app={app} onStatusChange={onStatusChange} onDelete={onDelete} />
           ))
         ) : (
           <div className="p-8 text-center bg-white border border-black/[0.06] rounded-xl text-xs text-[#8E8E93] space-y-1">
@@ -44,7 +53,7 @@ export default function RecentApplications({
       {/* Footer view summary */}
       <div className="pt-2 px-1 flex items-center justify-between text-[11px] text-[#8E8E93]">
         <span>
-          Viewing {applications.length} of {totalCount} applications
+          Viewing {allJobs.length} of {allJobs.length} applications
         </span>
         <Link
           href="/applications"

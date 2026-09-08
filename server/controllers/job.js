@@ -10,6 +10,7 @@ exports.createJob = async (req, res) => {
             job_title,
             description,
             job_url,
+            job_type,
             location,
             salary,
             status,
@@ -33,6 +34,7 @@ exports.createJob = async (req, res) => {
                 job_title,
                 description,
                 job_url,
+                job_type,
                 location,
                 salary,
                 status,
@@ -41,7 +43,7 @@ exports.createJob = async (req, res) => {
                 applied_date
             )
             VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING *`,
             [
                 userId,
@@ -49,6 +51,7 @@ exports.createJob = async (req, res) => {
                 job_title,
                 description,
                 job_url,
+                job_type || "Onsite",
                 location,
                 salary,
                 status || "Applied",
@@ -156,6 +159,7 @@ exports.updateJob = async (req, res) => {
             id,
             company_name,
             job_title,
+            job_type,
             description,
             job_url,
             location,
@@ -176,22 +180,24 @@ exports.updateJob = async (req, res) => {
         const result = await pool.query(
             `UPDATE jobs
              SET
-                company_name = $1,
-                job_title = $2,
-                description = $3,
-                job_url = $4,
-                location = $5,
-                salary = $6,
-                status = $7,
-                priority = $8,
-                note = $9,
-                applied_date = $10,
+                company_name = COALESCE($1, company_name),
+                job_title = COALESCE($2, job_title),
+                job_type = COALESCE($3, job_type),
+                description = COALESCE($4, description),
+                job_url = COALESCE($5, job_url),
+                location = COALESCE($6, location),
+                salary = COALESCE($7, salary),
+                status = COALESCE($8, status),
+                priority = COALESCE($9, priority),
+                note = COALESCE($10, note),
+                applied_date = COALESCE($11, applied_date),
                 updated_at = CURRENT_TIMESTAMP
-             WHERE id = $11 AND user_id = $12
+             WHERE id = $12 AND user_id = $13
              RETURNING *`,
             [
                 company_name,
                 job_title,
+                job_type,
                 description,
                 job_url,
                 location,
@@ -227,7 +233,43 @@ exports.updateJob = async (req, res) => {
         });
     }
 };
+exports.updateStatus = async (req, res) => {
+    try {
+        console.log('started at server end');
+        const userId = req.user.id;
+        const { id, status } = req.body;
+        if (!status || !id) {
+            return res.status(400).json({
+                success: false,
+                message: 'required status or id is missing'
+            })
+        }
+        const updatedJob = await pool.query(
+            `
+            UPDATE jobs SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND user_id =$3 returning *
+            `,
+            [status, id, userId]
+        )
+        if (updatedJob.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Job not found"
+            });
+        }
 
+        return res.status(200).json({
+            success: true,
+            message: "Status updated successfully",
+            job: updatedJob.rows[0]
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update status"
+        });
+    }
+}
 
 // DELETE JOB
 exports.deleteJob = async (req, res) => {
@@ -304,7 +346,6 @@ exports.getDashboard = async (req, res) => {
              LIMIT 5`,
             [userId]
         );
-
         return res.status(200).json({
             success: true,
             dashboard: {
