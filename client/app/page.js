@@ -4,9 +4,7 @@ import OpenRoute from '@/components/auth/OpenRoute'
 const page = () => {
   return (
     <OpenRoute>
-      <div>
-        <Homepage />
-      </div>
+      <Homepage />
     </OpenRoute>
   )
 }

@@ -42,7 +42,7 @@ export default function DashboardTopBar({ onOpenSearch, onToggleMobileSidebar, m
       </div>
 
       {/* Right: Quick Search Button */}
-      <div className="flex items-center gap-2">
+      {/* <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={onOpenSearch}
@@ -54,7 +54,7 @@ export default function DashboardTopBar({ onOpenSearch, onToggleMobileSidebar, m
             ⌘K
           </kbd>
         </button>
-      </div>
+      </div> */}
     </header>
   );
 }

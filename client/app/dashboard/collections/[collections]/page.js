@@ -154,7 +154,7 @@ export default function CollectionPage() {
                     <button
                         type="button"
                         onClick={() => setIsAddModalOpen(true)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0071E3] hover:bg-[#0077ED] active:bg-[#0062C4] text-white text-xs font-medium shadow-sm transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-black hover:bg-black/80 active:bg-black/70 text-white text-xs font-medium shadow-sm transition-colors cursor-pointer"
                     >
                         <Plus className="w-4 h-4" />
                         <span>Add Applications</span>

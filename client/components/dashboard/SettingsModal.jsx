@@ -5,20 +5,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import {
   X,
-  Sun,
-  Moon,
-  Laptop,
   Lock,
   Eye,
   EyeOff,
   Trash2,
   AlertTriangle,
-  Check,
   Loader2,
   Shield,
-  Palette,
+  LogOut,
 } from "lucide-react";
 import { changePassword, deleteAccount } from "@/services/operations/auth";
+import { logout } from "@/redux/authSlice"; // adjust path to wherever your logout action lives
 import toast from "react-hot-toast";
 
 export default function SettingsModal({ isOpen, onClose }) {
@@ -26,10 +23,7 @@ export default function SettingsModal({ isOpen, onClose }) {
   const router = useRouter();
   const { token, user } = useSelector((state) => state.auth);
 
-  const [activeTab, setActiveTab] = useState("theme");
-
-  // Theme state
-  const [theme, setTheme] = useState("system");
+  const [activeTab, setActiveTab] = useState("security");
 
   // Change Password state
   const [oldPassword, setOldPassword] = useState("");
@@ -44,13 +38,12 @@ export default function SettingsModal({ isOpen, onClose }) {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
-  // Read saved theme on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedTheme = localStorage.getItem("theme") || "system";
-      setTheme(savedTheme);
-    }
-  }, []);
+  const handleLogout = () => {
+    dispatch(logout());
+    onClose();
+    router.push("/login");
+    toast.success("Logged out successfully");
+  };
 
   // Handle escape key to close
   useEffect(() => {
@@ -62,26 +55,6 @@ export default function SettingsModal({ isOpen, onClose }) {
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
-
-  // Apply Theme Handler
-  const handleThemeChange = (selectedTheme) => {
-    setTheme(selectedTheme);
-    localStorage.setItem("theme", selectedTheme);
-    const root = document.documentElement;
-    if (selectedTheme === "dark") {
-      root.classList.add("dark");
-    } else if (selectedTheme === "light") {
-      root.classList.remove("dark");
-    } else {
-      // System
-      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        root.classList.add("dark");
-      } else {
-        root.classList.remove("dark");
-      }
-    }
-    toast.success(`Theme set to ${selectedTheme}`);
-  };
 
   // Change Password Handler
   const handleChangePassword = async (e) => {
@@ -127,15 +100,9 @@ export default function SettingsModal({ isOpen, onClose }) {
   };
 
   const navItems = [
-    { id: "theme", label: "Appearance", icon: Palette },
     { id: "security", label: "Password & Security", icon: Shield },
     { id: "danger", label: "Danger Zone", icon: AlertTriangle, danger: true },
-  ];
-
-  const themeOptions = [
-    { id: "light", label: "Light", icon: Sun },
-    { id: "dark", label: "Dark", icon: Moon },
-    { id: "system", label: "System", icon: Laptop },
+    { id: "logout", label: "Logout", icon: LogOut },
   ];
 
   return (
@@ -163,14 +130,20 @@ export default function SettingsModal({ isOpen, onClose }) {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setActiveTab(item.id)}
+                    onClick={() => {
+                      if (item.id === "logout") {
+                        handleLogout();
+                      } else {
+                        setActiveTab(item.id);
+                      }
+                    }}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all text-left cursor-pointer ${isActive
-                        ? item.danger
-                          ? "bg-[#FDF0EF] text-[#B3261E] font-semibold"
-                          : "bg-white text-[#0071E3] shadow-xs font-semibold border border-black/[0.04]"
-                        : item.danger
-                          ? "text-[#B3261E]/80 hover:bg-[#FDF0EF]/60 hover:text-[#B3261E]"
-                          : "text-[#555558] hover:bg-black/[0.04] hover:text-[#1D1D1F]"
+                      ? item.danger
+                        ? "bg-[#FDF0EF] text-[#B3261E] font-semibold"
+                        : "bg-white text-[#0071E3] shadow-xs font-semibold border border-black/[0.04]"
+                      : item.danger
+                        ? "text-[#B3261E]/80 hover:bg-[#FDF0EF]/60 hover:text-[#B3261E]"
+                        : "text-[#555558] hover:bg-black/[0.04] hover:text-[#1D1D1F]"
                       }`}
                   >
                     <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -198,7 +171,6 @@ export default function SettingsModal({ isOpen, onClose }) {
           {/* Header */}
           <div className="px-6 py-4 border-b border-black/[0.06] flex items-center justify-between">
             <h3 className="text-sm font-semibold text-[#1D1D1F]">
-              {activeTab === "theme" && "Appearance & Theme"}
               {activeTab === "security" && "Change Password"}
               {activeTab === "danger" && "Danger Zone"}
             </h3>
@@ -213,35 +185,6 @@ export default function SettingsModal({ isOpen, onClose }) {
 
           {/* Content Body */}
           <div className="p-6 overflow-y-auto flex-1 space-y-6">
-
-            {/* TAB: APPEARANCE */}
-            {activeTab === "theme" && (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs font-medium text-[#1D1D1F]">Interface Theme</p>
-                  <p className="text-[11px] text-[#8E8E93] mt-0.5">Choose how ApplyFlow looks on your device.</p>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  {themeOptions.map(({ id, label, icon: Icon }) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => handleThemeChange(id)}
-                      className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${theme === id
-                          ? "border-[#0071E3] bg-[#EDF5FD] text-[#0071E3] shadow-xs font-semibold"
-                          : "border-black/[0.08] hover:border-black/[0.15] bg-[#F9F9FB] text-[#555558]"
-                        }`}
-                    >
-                      <div className="w-9 h-9 rounded-full bg-white border border-black/[0.07] flex items-center justify-center mb-2 shadow-xs">
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <span className="text-xs font-medium">{label}</span>
-                      {theme === id && <Check className="w-3.5 h-3.5 mt-1.5 text-[#0071E3]" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* TAB: SECURITY */}
             {activeTab === "security" && (

@@ -34,7 +34,7 @@ export default function Page() {
     }
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-3 mx-60">
             {view == "all-applications" && <DashboardHeader />}
 
             <div className="flex items-center justify-between px-1">
@@ -47,7 +47,7 @@ export default function Page() {
             </div>
 
             {/* Applications List */}
-            <div className="space-y-2">
+            <div className="space-y-2  ">
                 {jobs.length > 0 ? (
                     jobs.map((app) => (
                         <ApplicationRow key={app.id} app={app} onStatusChange={onStatusChange} onDelete={onDelete} />
