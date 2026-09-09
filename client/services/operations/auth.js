@@ -1,8 +1,9 @@
 import { apiConnector } from "../apiconnector";
 import { authEndpoints } from "../apis";
-import { setLoading, setToken, setUser } from "@/redux/authSlice";
+import { setLoading, setToken, setUser, logout } from "@/redux/authSlice";
+import toast from "react-hot-toast";
 
-const { SENDOTP_API, SIGNUP_API, LOGIN_API } = authEndpoints;
+const { SENDOTP_API, SIGNUP_API, LOGIN_API, CHANGE_PASSWORD_API, DELETE_ACCOUNT_API } = authEndpoints;
 
 export function sendOtp(email, router) {
     return async (dispatch) => {
@@ -104,4 +105,69 @@ export function login(email, password, router) {
         }
     };
 }
+
+export function changePassword(token, { oldPassword, newPassword }) {
+    return async (dispatch) => {
+        dispatch(setLoading(true));
+        const toastId = toast.loading("Updating password...");
+        try {
+            const response = await apiConnector(
+                "POST",
+                CHANGE_PASSWORD_API,
+                { oldPassword, newPassword },
+                { Authorization: `Bearer ${token}` }
+            );
+
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || "Failed to change password");
+            }
+
+            toast.success("Password changed successfully!");
+            return true;
+        } catch (error) {
+            console.error("CHANGE PASSWORD ERROR:", error);
+            const message = error.response?.data?.message || error.message || "Failed to change password";
+            toast.error(message);
+            return false;
+        } finally {
+            dispatch(setLoading(false));
+            toast.dismiss(toastId);
+        }
+    };
+}
+
+export function deleteAccount(token, router) {
+    return async (dispatch) => {
+        dispatch(setLoading(true));
+        const toastId = toast.loading("Deleting account...");
+        try {
+            const response = await apiConnector(
+                "POST",
+                DELETE_ACCOUNT_API,
+                null,
+                { Authorization: `Bearer ${token}` }
+            );
+
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || "Failed to delete account");
+            }
+
+            toast.success("Account deleted successfully");
+            dispatch(logout());
+            if (router) {
+                router.push("/login");
+            }
+            return true;
+        } catch (error) {
+            console.error("DELETE ACCOUNT ERROR:", error);
+            const message = error.response?.data?.message || error.message || "Failed to delete account";
+            toast.error(message);
+            return false;
+        } finally {
+            dispatch(setLoading(false));
+            toast.dismiss(toastId);
+        }
+    };
+}
+
 

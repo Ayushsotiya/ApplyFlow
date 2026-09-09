@@ -10,7 +10,8 @@ const {
     UPDATE_JOB_API,
     DELETE_JOB_API,
     GET_DASHBOARD_API,
-    UPDATE_JOB_STATUS_API
+    UPDATE_JOB_STATUS_API,
+    GET_JOB_BY_STATUS_API
 } = jobEndpoints;
 
 
@@ -92,6 +93,27 @@ export function fetchJobById(token, id) {
             dispatch(setLoading(false));
         }
     };
+}
+
+export const fetchJobByStatus = async (token, status) => {
+    dispatch(setLoading(true));
+    try {
+        const response = await apiConnector("POST", GET_JOB_BY_STATUS_API, { status }, {
+            Authorization: `Bearer ${token}`,
+        });
+
+        if (!response.data.success) {
+            throw new Error(response.data.message);
+        }
+
+        return response.data.job;
+
+    } catch (error) {
+        console.error(error);
+        toast.error(error?.response?.data?.message || "Failed to fetch job");
+    } finally {
+        dispatch(setLoading(false));
+    }
 }
 
 export function updateStatus(token, id, status) {

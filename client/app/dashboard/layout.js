@@ -1,12 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PrivateRoute from "@/components/auth/PrivateRoute";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import DashboardSidebar from "@/components/dashboard/SideBar";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchJobs } from '@/services/operations/jobs';
 
 export default function DashboardLayout({ children }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const dispatch = useDispatch();
+  const { token } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(fetchJobs(token));
+  }, []);
 
   return (
     <PrivateRoute>

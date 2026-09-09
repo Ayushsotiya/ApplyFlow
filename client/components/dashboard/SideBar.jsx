@@ -12,6 +12,7 @@ import {
 } from "@/services/operations/collections";
 import { fetchDashboard } from "@/services/operations/jobs";
 import Logo from "@/components/common/Logo";
+import SettingsModal from "./SettingsModal";
 
 import {
   Layers,
@@ -45,6 +46,7 @@ export default function DashboardSidebar({
 
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // =========================
   // React Hook Form
@@ -152,7 +154,7 @@ export default function DashboardSidebar({
       label: "Interviews",
       count: displayInterviews,
       icon: Calendar,
-      link: "/dashboard/interviews"
+      link: "/dashboard/interview"
     },
     {
       id: "offers",
@@ -161,7 +163,7 @@ export default function DashboardSidebar({
       icon: CheckCircle2,
       countHighlight:
         "bg-[#ECF7ED] text-[#1E722D] border-[#C8E8CC]",
-      link: "/dashboard/offers"
+      link: "/dashboard/offer"
     },
   ];
 
@@ -473,13 +475,13 @@ export default function DashboardSidebar({
               {!collectionsLoading &&
                 allCollections.map((collection) => {
                   const isSelected =
-                    pathname === `/dashboard/${collection.name}`;
+                    pathname === `/dashboard/collections/${collection.name}`;
 
                   return (
                     <button
                       key={collection.id}
                       type="button"
-                      onClick={() => router.push(`/dashboard/${collection.name}`)}
+                      onClick={() => router.push(`/dashboard/collections/${collection.name}`)}
                       className={`w-full flex
                       items-center
                       justify-between
@@ -554,7 +556,8 @@ export default function DashboardSidebar({
             text-[#555558]
             hover:text-[#1D1D1F]
             hover:bg-black/[0.04]
-            transition-colors"
+            transition-colors cursor-pointer"
+            onClick={() => setIsSettingsOpen(true)}
           >
             <div className="flex items-center gap-2">
               <Settings
@@ -655,6 +658,12 @@ export default function DashboardSidebar({
           </div>
         </div>
       </aside >
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </>
   );
 }

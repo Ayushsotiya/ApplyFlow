@@ -149,7 +149,48 @@ exports.getJobById = async (req, res) => {
     }
 };
 
-
+exports.fetchJobByStatus = async (req, res) => {
+    try {
+        const userId = req.uer.id;
+        const { status } = req.body;
+        if (!status) {
+            return res.status(500).json({
+                success: false,
+                message: 'status is not provided'
+            })
+        }
+        if (status == 'all') {
+            const jobs = await pool.query(
+                `
+                  SELECT * FROM jobs WHERE  user_id = $1 ORDERBY created_at ASC
+                `,
+                [userId]
+            )
+            return res.status(200).json({
+                success: true,
+                message: ' Job got fetched by status',
+                jobs
+            })
+        }
+        const jobs = await pool.query(
+            `
+              SELECT * FROM jobs WHERE status = $1 AND user_id = $2 ORDERBY created_at ASC
+            `,
+            [status, userId]
+        )
+        return res.status(200).json({
+            success: true,
+            message: ' Job got fetched by status',
+            jobs
+        })
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch job by status'
+        })
+    }
+}
 // UPDATE JOB
 exports.updateJob = async (req, res) => {
     try {

@@ -7,7 +7,8 @@ const {
     updateJob,
     deleteJob,
     getDashboard,
-    updateStatus
+    updateStatus,
+    fetchJobByStatus
 } = require('../controllers/job')
 
 const { auth } = require('../middleware/auth');
@@ -20,5 +21,6 @@ router.post('/update', auth, updateJob)
 router.post('/update-status', auth, updateStatus)           // id + data in req.body
 router.post('/delete', auth, deleteJob)          // id in req.body
 router.get('/dashboard', auth, getDashboard)
+router.get('/get-jobs-by-status', auth, fetchJobByStatus)
 
 module.exports = router

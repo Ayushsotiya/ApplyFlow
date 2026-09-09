@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useSelector } from 'react-redux'
 import React, { useEffect } from 'react'
 
-const OpenRoute = (children) => {
+const OpenRoute = ({ children }) => {
     const router = useRouter()
     const { token } = useSelector((state) => state.auth)
 

@@ -7,6 +7,7 @@ import { fetchJobs } from '@/services/operations/jobs';
 import { useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { updateStatus, deleteJob } from '@/services/operations/jobs';
+
 export default function RecentApplications() {
   const dispatch = useDispatch();
   const { token } = useSelector((state) => state.auth);
@@ -20,9 +21,9 @@ export default function RecentApplications() {
     await dispatch(updateStatus(token, id, newStatus));
   }
 
-  useEffect(() => {
-    dispatch(fetchJobs(token));
-  }, []);
+  // useEffect(() => {
+  //   dispatch(fetchJobs(token));
+  // }, []);
 
   return (
     <div className="space-y-3">

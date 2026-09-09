@@ -220,3 +220,106 @@ exports.sendotp = async (req, res) => {
         });
     }
 };
+
+
+// CHANGE PASSWORD
+exports.changePassword = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { oldPassword, newPassword } = req.body;
+
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Both old and new passwords are required",
+            });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be at least 6 characters long",
+            });
+        }
+
+        const userResult = await pool.query(
+            "SELECT password FROM users WHERE id = $1",
+            [userId]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        const isMatch = await bcrypt.compare(oldPassword, userResult.rows[0].password);
+        if (!isMatch) {
+            return res.status(400).json({
+                success: false,
+                message: "Incorrect current password",
+            });
+        }
+
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+        await pool.query(
+            "UPDATE users SET password = $1 WHERE id = $2",
+            [hashedNewPassword, userId]
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Password updated successfully",
+        });
+    } catch (error) {
+        console.error("Change password error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password",
+        });
+    }
+};
+
+
+// DELETE ACCOUNT
+exports.deleteAccount = async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const userId = req.user.id;
+
+        await client.query("BEGIN");
+
+        // 1. Delete collection_jobs
+        await client.query(
+            `DELETE FROM collection_jobs 
+             WHERE collection_id IN (SELECT id FROM collections WHERE user_id = $1)`,
+            [userId]
+        );
+
+        // 2. Delete collections
+        await client.query("DELETE FROM collections WHERE user_id = $1", [userId]);
+
+        // 3. Delete jobs
+        await client.query("DELETE FROM jobs WHERE user_id = $1", [userId]);
+
+        // 4. Delete user
+        await client.query("DELETE FROM users WHERE id = $1", [userId]);
+
+        await client.query("COMMIT");
+
+        return res.status(200).json({
+            success: true,
+            message: "Account deleted successfully",
+        });
+    } catch (error) {
+        await client.query("ROLLBACK");
+        console.error("Delete account error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to delete account",
+        });
+    } finally {
+        client.release();
+    }
+};
