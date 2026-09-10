@@ -2,7 +2,7 @@ const nodemailer = require("nodemailer");
 require('dotenv').config();
 const mailSender = async (email, title, body) => {
     try {
-
+        console.log('started');
         let transporter = nodemailer.createTransport({
             host: process.env.MAIL_HOST,
             port: 587,
@@ -20,7 +20,7 @@ const mailSender = async (email, title, body) => {
             subject: `${title}`,
             html: `${body}`,
         })
-
+        console.log(info, 'finished');
         return info;
 
     } catch (error) {
