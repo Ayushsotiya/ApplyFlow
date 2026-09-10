@@ -20,7 +20,7 @@ export default function Page() {
     const onDelete = async (id) => {
         await dispatch(deleteJob(token, id));
     }
-    console.log(allJobs)
+
     const onStatusChange = async (id, newStatus) => {
         await dispatch(updateStatus(token, id, newStatus));
     }

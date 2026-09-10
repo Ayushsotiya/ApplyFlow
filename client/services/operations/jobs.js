@@ -123,7 +123,6 @@ export function updateStatus(token, id, status) {
             const response = await apiConnector("POST", UPDATE_JOB_STATUS_API, { id, status }, {
                 Authorization: `Bearer ${token}`,
             });
-            console.log(response);
             if (!response.data.success) {
                 throw new Error(response.data.message);
             }
@@ -147,11 +146,9 @@ export function updateJob(token, jobData) {
 
         const toastId = toast.loading("Updating job...");
         try {
-            console.log('started2');
             const response = await apiConnector("POST", UPDATE_JOB_API, { ...jobData }, {
                 Authorization: `Bearer ${token}`,
             });
-            console.log(response);
             if (!response.data.success) {
                 throw new Error(response.data.message);
             }

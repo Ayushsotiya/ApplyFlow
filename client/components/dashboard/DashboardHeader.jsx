@@ -12,7 +12,7 @@ export default function DashboardHeader() {
   const [isModal, setModal] = useState(false);
   const onAddApplication = async (data) => {
     try {
-      console.log(data);
+
       if (token) {
         await dispatch(createJob(token, data));
       }

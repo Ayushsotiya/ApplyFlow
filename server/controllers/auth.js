@@ -4,6 +4,7 @@ const pool = require("../config/db");
 const jwt = require("jsonwebtoken");
 const otpGenerator = require('otp-generator');
 const mailSender = require('../utils/mailSender');
+const otpTemplate = require('../utils/otpTemplate');
 exports.Signup = async (req, res) => {
     try {
         const { name, email, password, otp } = req.body;
@@ -194,7 +195,7 @@ exports.sendotp = async (req, res) => {
                 [otp]
             );
         }
-        await mailSender(email, "Verification code from ApplyFlow", `<h1>Your OTP is :</h1><p>${otp}</p>`, "ad");
+        await mailSender(email, "Verification code from ApplyFlow", otpTemplate(otp));
         // Save OTP in database
         const otpResult = await pool.query(
             `INSERT INTO otp (email, otp)

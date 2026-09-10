@@ -276,7 +276,6 @@ exports.updateJob = async (req, res) => {
 };
 exports.updateStatus = async (req, res) => {
     try {
-        console.log('started at server end');
         const userId = req.user.id;
         const { id, status } = req.body;
         if (!status || !id) {

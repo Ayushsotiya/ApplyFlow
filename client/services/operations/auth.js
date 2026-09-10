@@ -10,8 +10,6 @@ export function sendOtp(email, router) {
         dispatch(setLoading(true));
         try {
             const response = await apiConnector("POST", SENDOTP_API, { email });
-            console.log("SENDOTP API RESPONSE:", response);
-
             if (!response?.data?.success) {
                 throw new Error(response?.data?.message || "Failed to send OTP");
             }
@@ -44,7 +42,6 @@ export function signup(data, router, onSuccess) {
             };
 
             const response = await apiConnector("POST", SIGNUP_API, payload);
-            console.log("SIGNUP API RESPONSE:", response);
 
             if (!response?.data?.success) {
                 throw new Error(response?.data?.message || "Signup failed");
@@ -73,7 +70,6 @@ export function login(email, password, router) {
         dispatch(setLoading(true));
         try {
             const response = await apiConnector("POST", LOGIN_API, { email, password });
-            console.log("LOGIN API RESPONSE:", response);
 
             if (!response?.data?.success) {
                 throw new Error(response?.data?.message || "Login failed");
