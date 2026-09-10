@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: "https://apply-flow-five.vercel.app",
+    origin: '*',
     credentials: true
 }));
 
@@ -29,21 +29,21 @@ app.get("/", (req, res) => {
     });
 });
 
-// app.get("/db-test", async (req, res) => {
-//     try {
-//         const result = await pool.query("SELECT NOW()");
+app.get("/db-test", async (req, res) => {
+    try {
+        const result = await pool.query("SELECT NOW()");
 
-//         res.json({
-//             message: "Database connected",
-//             time: result.rows[0].now,
-//         });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({
-//             message: "Database connection failed",
-//         });
-//     }
-// });
+        res.json({
+            message: "Database connected",
+            time: result.rows[0].now,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Database connection failed",
+        });
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
