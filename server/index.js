@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: '*',
+    origin: 'https://apply-flow-five.vercel.app',
     credentials: true
 }));
 
