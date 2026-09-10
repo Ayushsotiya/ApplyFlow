@@ -1,38 +1,39 @@
 const nodemailer = require("nodemailer");
-require('dotenv').config();
+require("dotenv").config();
+
 const mailSender = async (email, title, body) => {
     try {
-        console.log('started');
         const transporter = nodemailer.createTransport({
             host: "smtp.gmail.com",
             port: 465,
             secure: true,
             family: 4,
+
             connectionTimeout: 10000,
             greetingTimeout: 10000,
             socketTimeout: 10000,
+
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASSWORD,
             },
         });
-        console.log("middle");
-        // Test SMTP connection/authentication
-        await transporter.verify();
-        console.log("SMTP verified");
-        let info = await transporter.sendMail({
+
+        const info = await transporter.sendMail({
             from: `"ApplyFlow - by Ayush" <${process.env.MAIL_USER}>`,
-            to: `${email}`,
-            subject: `${title}`,
-            html: `${body}`,
-        })
-        console.log(info, 'finished');
+            to: email,
+            subject: title,
+            html: body,
+        });
+
+        console.log("Email sent:", info.messageId);
+
         return info;
 
     } catch (error) {
-        console.log(error.message);
+        console.log("SMTP ERROR:", error);
         throw error;
     }
-}
+};
 
 module.exports = mailSender;
