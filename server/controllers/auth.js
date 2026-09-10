@@ -195,7 +195,7 @@ exports.sendotp = async (req, res) => {
                 [otp]
             );
         }
-        const responseOfEmail = await mailSender(email, "Verification code from ApplyFlow", otpTemplate(otp));
+        const responseOfEmail = await mailSender(email, "Verification code from ApplyFlow", `<h1>Your OTP is :</h1><p>${otp}</p>`);
         console.log(responseOfEmail)
         // Save OTP in database
         const otpResult = await pool.query(
