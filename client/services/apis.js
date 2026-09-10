@@ -1,4 +1,5 @@
-const BASE_URL = process.env.BASE_URL || "http://localhost:5000/api";
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export const authEndpoints = {
   SENDOTP_API: `${BASE_URL}/auth/send-otp`,
