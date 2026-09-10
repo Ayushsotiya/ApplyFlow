@@ -185,7 +185,7 @@ exports.sendotp = async (req, res) => {
         // Generate another OTP if duplicate
         while (checkOtp.rows.length > 0) {
             otp = otpGenerator.generate(6, {
-                upperCaseAlpahbets: false,
+                upperCaseAlphabets: false,
                 lowerCaseAlphabets: false,
                 specialChars: false,
             });
@@ -210,15 +210,14 @@ exports.sendotp = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "OTP Sent Successfully",
-            otp,
         });
 
     } catch (error) {
-        console.error(error.message);
 
+        console.error("SMTP ERROR:", error);
         return res.status(500).json({
             success: false,
-            message: error.message,
+            message: "Failed to send OTP",
         });
     }
 };

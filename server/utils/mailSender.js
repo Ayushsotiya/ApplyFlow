@@ -13,7 +13,7 @@ const mailSender = async (email, title, body) => {
                 pass: process.env.MAIL_PASSWORD,
             },
         });
-
+        console.log('middle');
         let info = await transporter.sendMail({
             from: 'ApplyFlow - by Ayush',
             to: `${email}`,
