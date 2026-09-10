@@ -194,7 +194,7 @@ exports.sendotp = async (req, res) => {
                 [otp]
             );
         }
-        mailSender(email, "Verification code from ApplyFlow", `<h1>Your OTP is :</h1><p>${otp}</p>`, "ad");
+        await mailSender(email, "Verification code from ApplyFlow", `<h1>Your OTP is :</h1><p>${otp}</p>`, "ad");
         // Save OTP in database
         const otpResult = await pool.query(
             `INSERT INTO otp (email, otp)
@@ -322,4 +322,4 @@ exports.deleteAccount = async (req, res) => {
     } finally {
         client.release();
     }
-};
+};
